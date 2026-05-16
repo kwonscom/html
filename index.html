@@ -121,6 +121,42 @@
         .lazy-img.loaded {
             opacity: 1;
         }
+
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 8, 20, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .image-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        .image-modal img {
+            max-width: 90%;
+            max-height: 85vh;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .image-modal.active img {
+            transform: scale(1);
+        }
+        .video-container {
+            box-shadow: 0 50px 100px -20px rgba(0, 43, 91, 0.3);
+            border: 8px solid white;
+        }
     </style>
 </head>
 <body class="bg-white text-slate-800 antialiased selection:bg-skyblue selection:text-white">
@@ -286,6 +322,27 @@
         </div>
     </section>
 
+    <!-- Corporate Video Section -->
+    <section id="video-intro" class="py-32 bg-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-16">
+                <span class="text-skyblue font-black tracking-widest uppercase mb-4 block">Corporate Identity</span>
+                <h2 class="text-5xl font-black text-deepblue">비에이텍 기업 소개 영상</h2>
+            </div>
+            <div class="relative max-w-5xl mx-auto rounded-[3rem] overflow-hidden video-container group">
+                <video id="introVideo" controls poster="https://images.unsplash.com/photo-1504307651254-35680fb3ba66?auto=format&fit=crop&q=80&w=2070" class="w-full aspect-video object-cover">
+                    <source src="비에이텍 영상.mp4" type="video/mp4">
+                    브라우저가 동영상을 지원하지 않습니다.
+                </video>
+                <div id="videoOverlay" class="absolute inset-0 bg-deepblue/40 flex items-center justify-center cursor-pointer group-hover:bg-deepblue/20 transition duration-500 pointer-events-none">
+                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition duration-500">
+                        <i data-lucide="play" class="w-10 h-10 text-deepblue fill-deepblue ml-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- History -->
     <section id="history" class="py-32 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -392,6 +449,14 @@
                 <button onclick="openPdf('정량펌프 유지관리지침서.pdf', '정량펌프 유지관리 지침서')" class="doc-btn group p-10 bg-white rounded-[2.5rem] shadow-xl flex flex-col items-center gap-6">
                     <i class="fas fa-book-open text-5xl text-skyblue group-hover:text-deepblue transition"></i>
                     <span class="font-black text-deepblue text-center">유지관리<br>지침서</span>
+                </button>
+                <button onclick="openImage('브로슈어 최종.png', '비에이텍 브로슈어')" class="doc-btn group p-10 bg-white rounded-[2.5rem] shadow-xl flex flex-col items-center gap-6">
+                    <i class="fas fa-file-image text-5xl text-skyblue group-hover:text-deepblue transition"></i>
+                    <span class="font-black text-deepblue text-center">브로슈어</span>
+                </button>
+                <button onclick="openImage('비에이텍 카드뉴스 최종.png', '비에이텍 카드뉴스')" class="doc-btn group p-10 bg-white rounded-[2.5rem] shadow-xl flex flex-col items-center gap-6">
+                    <i class="fas fa-newspaper text-5xl text-skyblue group-hover:text-deepblue transition"></i>
+                    <span class="font-black text-deepblue text-center">카드뉴스</span>
                 </button>
             </div>
             
@@ -514,13 +579,60 @@
         </div>
     </div>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="image-modal" onclick="closeImage()">
+        <div class="relative flex flex-col items-center gap-6 w-full h-full justify-center p-4">
+            <button onclick="closeImage()" class="absolute top-10 right-10 w-14 h-14 bg-white rounded-full flex items-center justify-center text-deepblue shadow-2xl hover:bg-skyblue hover:text-white transition z-50">
+                <i data-lucide="x" class="w-8 h-8"></i>
+            </button>
+            <div class="bg-white px-8 py-3 rounded-full mb-4 shadow-xl z-10">
+                <span id="imageModalTitle" class="text-deepblue font-black tracking-wider">Image Viewer</span>
+            </div>
+            <img id="modalImage" src="" alt="Brochure" onclick="event.stopPropagation()">
+        </div>
+    </div>
+
+    <!-- Background Audio -->
+    <audio id="bgAudio" loop preload="auto">
+        <source src="Crystal Water Echoes.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         lucide.createIcons();
+
+        // Background Audio logic
+        const bgAudio = document.getElementById('bgAudio');
+        const playAudio = () => {
+            bgAudio.play().catch(err => console.log("Autoplay blocked, waiting for interaction"));
+            document.removeEventListener('click', playAudio);
+            document.removeEventListener('touchstart', playAudio);
+        };
+        document.addEventListener('click', playAudio);
+        document.addEventListener('touchstart', playAudio);
 
         // Mobile Menu
         const btn = document.getElementById('mobile-menu-button');
         const menu = document.getElementById('mobile-menu');
         btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+
+        // Video & Audio Interlocking
+        const introVideo = document.getElementById('introVideo');
+        const videoOverlay = document.getElementById('videoOverlay');
+
+        introVideo.addEventListener('play', () => {
+            bgAudio.pause();
+            videoOverlay.style.opacity = '0';
+        });
+
+        introVideo.addEventListener('pause', () => {
+            bgAudio.play();
+            videoOverlay.style.opacity = '1';
+        });
+
+        introVideo.addEventListener('ended', () => {
+            bgAudio.play();
+            videoOverlay.style.opacity = '1';
+        });
 
         // PDF Modal Logic
         const modal = document.getElementById('pdfModal');
@@ -533,6 +645,7 @@
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
             document.body.style.overflow = 'hidden';
+            bgAudio.volume = 0.3; // Lower volume when viewing documents
         }
 
         function closePdf() {
@@ -542,6 +655,30 @@
                 viewer.src = '';
             }, 500);
             document.body.style.overflow = 'auto';
+            bgAudio.volume = 1.0;
+        }
+
+        // Image Modal Logic
+        const imageModal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const imageTitle = document.getElementById('imageModalTitle');
+
+        function openImage(src, titleText) {
+            modalImg.src = src;
+            imageTitle.textContent = titleText;
+            imageModal.style.display = 'flex';
+            setTimeout(() => imageModal.classList.add('active'), 10);
+            document.body.style.overflow = 'hidden';
+            bgAudio.volume = 0.3;
+        }
+
+        function closeImage() {
+            imageModal.classList.remove('active');
+            setTimeout(() => {
+                imageModal.style.display = 'none';
+            }, 400);
+            document.body.style.overflow = 'auto';
+            bgAudio.volume = 1.0;
         }
 
         // Close on BG click
